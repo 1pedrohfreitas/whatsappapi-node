@@ -1,0 +1,23 @@
+{
+  "name": "whatsapp-api",
+  "version": "1.0.0",
+  "description": "Library for interacting with the WhatsApp Web API ",
+  "main": "./index.js",
+  "dependencies": {
+    "express": "^4.21.1",
+    "express-fileupload": "^1.5.1",
+    "pg": "^8.13.0",
+    "qrcode": "^1.4.4",
+    "socket.io": "^4.8.0",
+    "whatsapp-web.js": "^1.26.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/express-fileupload": "^1.5.1",
+    "@types/mime-types": "^2.1.4",
+    "@types/qrcode": "^1.5.5"
+  }
+}
