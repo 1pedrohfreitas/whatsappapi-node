@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
+  "scripts": {
+  "build": "tsc && cp -R src/public dist/src/public"
+  },
   "dependencies": {
     "express": "^4.21.1",
     "express-fileupload": "^1.5.1",

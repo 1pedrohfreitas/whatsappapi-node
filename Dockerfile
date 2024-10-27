@@ -37,7 +37,7 @@ RUN git clone --branch main https://github.com/1pedrohfreitas/whatsappapi-node.g
 RUN npm install
 
 # Realiza o build do TypeScript
-RUN npx tsc
+RUN npm run build
 
 # Expõe a porta 8000
 EXPOSE 10000
