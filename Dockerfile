@@ -40,7 +40,7 @@ RUN npm install
 RUN npx tsc
 
 # Expõe a porta 8000
-EXPOSE 8000
+EXPOSE 10000
 
 # Comando para iniciar a aplicação
 CMD ["node", "dist/src/app.js"]
