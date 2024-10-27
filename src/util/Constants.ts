@@ -1,4 +1,5 @@
 export const WHATSAPP_URL = "https://web.whatsapp.com/";
+export const MSG_USER = "{username}";
 
 export const REST_RESPONSE_SUCCESS : RestResponse = {
     status : 200

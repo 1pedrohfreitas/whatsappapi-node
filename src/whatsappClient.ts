@@ -3,6 +3,7 @@ import qrcode from 'qrcode';
 import { Client, LocalAuth } from 'whatsapp-web.js';
 import { Server } from 'socket.io';
 
+
 let qrCodeConnection = '';
 
 // Função para inicializar o cliente do WhatsApp
@@ -67,3 +68,4 @@ export function initializeWhatsAppClient(io: Server) {
 
   return clientWhatsApp;
 }
+
