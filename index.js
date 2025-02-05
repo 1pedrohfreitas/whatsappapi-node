@@ -1,7 +1,10 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const QRCode = require('qrcode');
 const express = require('express');
 const bodyParser = require('body-parser');
+
+const PORT = process.env.PORT || 3000;
 
 class WhatsAppService {
     constructor() {
@@ -33,6 +36,7 @@ class WhatsAppService {
     setupEventHandlers() {
         this.client.on('qr', (qr) => {
             qrcode.generate(qr, { small: true });
+            console.log(qr)
             console.log('QR Code gerado, faça o scan');
         });
 
@@ -88,6 +92,44 @@ class WhatsAppService {
                 isAuthenticated: this.client.isRegistered
             });
         });
+
+        this.app.get('/qrcode', async (req, res) => {
+            // Adicionar tratativa para cliente não inicializado
+            if (this.client.state !== 'UNPAIRED') {
+                return res.status(400).json({ 
+                    error: 'Cliente já autenticado ou em estado inválido' 
+                });
+            }
+    
+            // Listener temporário para capturar QR Code
+            const qrCodePromise = new Promise((resolve) => {
+                this.client.once('qr', (qr) => {
+                    resolve(qr);
+                });
+            });
+    
+            // Reinicializar cliente se necessário
+            if (this.client.state === 'CLOSED') {
+                this.client.initialize();
+            }
+    
+            try {
+                const qr = await qrCodePromise;
+                
+                // Gerar QR Code como imagem
+                const qrCodeImage = await QRCode.toDataURL(qr);
+                
+                res.json({ 
+                    qrCode: qrCodeImage,
+                    message: 'Escaneie o QR Code com o WhatsApp' 
+                });
+            } catch (error) {
+                res.status(500).json({ 
+                    error: 'Erro ao gerar QR Code', 
+                    details: error.message 
+                });
+            }
+        });
     }
 
     async sendMessage(number, message) {
@@ -99,10 +141,10 @@ class WhatsAppService {
         this.client.initialize();
     }
 
-    start(port = 3000) {
+    start() {
         this.initialize();
-        this.app.listen(port, () => {
-            console.log(`Serviço WhatsApp rodando na porta ${port}`);
+        this.app.listen(PORT, () => {
+            console.log(`Serviço WhatsApp rodando na porta ${PORT}`);
         });
     }
 }
