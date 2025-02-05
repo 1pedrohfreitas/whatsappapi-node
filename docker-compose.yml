@@ -10,7 +10,16 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - whatsapp-data:/app/.wwebjs_auth
     environment:
       - NODE_ENV=production
-    privileged: true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     restart: unless-stopped
+
+volumes:
+  whatsapp-data:
+    name: whatsapp-data
