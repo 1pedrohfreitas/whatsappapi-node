@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   whatsapp-service:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: devpedrohfreitas/whatsappapi
     ports:
       - "3000:3000"
     volumes:
