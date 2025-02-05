@@ -1,0 +1,7 @@
+ post http://localhost:3000/send
+ Content-Type: application/json
+
+ {
+    "number" : "553194245892",
+    "message" : "teste"
+ }
