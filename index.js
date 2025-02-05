@@ -5,6 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const PORT = process.env.PORT || 3000;
+let  qrCodeString = '';
 
 class WhatsAppService {
     constructor() {
@@ -35,6 +36,7 @@ class WhatsAppService {
 
     setupEventHandlers() {
         this.client.on('qr', (qr) => {
+            this.qrCodeString = qr;
             qrcode.generate(qr, { small: true });
             console.log(qr)
             console.log('QR Code gerado, faça o scan');
@@ -93,36 +95,66 @@ class WhatsAppService {
             });
         });
 
-        this.app.get('/qrcode', async (req, res) => {
-            // Adicionar tratativa para cliente não inicializado
-            if (this.client.state !== 'UNPAIRED') {
-                return res.status(400).json({ 
-                    error: 'Cliente já autenticado ou em estado inválido' 
-                });
-            }
-    
-            // Listener temporário para capturar QR Code
-            const qrCodePromise = new Promise((resolve) => {
-                this.client.once('qr', (qr) => {
-                    resolve(qr);
-                });
-            });
-    
-            // Reinicializar cliente se necessário
-            if (this.client.state === 'CLOSED') {
-                this.client.initialize();
-            }
-    
+        this.app.get('/qrcode', async (req, res) => {    
             try {
-                const qr = await qrCodePromise;
+
+                const qrCodeImage = await QRCode.toDataURL(this.qrCodeString);
+
+                const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>WhatsApp QR Code</title>
+                    <style>
+                        body {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            min-height: 100vh;
+                            margin: 0;
+                            font-family: Arial, sans-serif;
+                            background-color: #f0f2f5;
+                        }
+                        .container {
+                            text-align: center;
+                            padding: 20px;
+                            background: white;
+                            border-radius: 10px;
+                            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                        }
+                        img {
+                            max-width: 300px;
+                            margin: 20px 0;
+                        }
+                        .status {
+                            color: #075e54;
+                            margin-bottom: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>WhatsApp QR Code</h1>
+                        <p class="status">Status: Aguardando conexão</p>
+                        <img src="${qrCodeImage}" alt="WhatsApp QR Code">
+                        <p>Escaneie o QR Code com seu WhatsApp</p>
+                    </div>
+                    <script>
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 30000);
+                    </script>
+                </body>
+                </html>
+            `;
+            
+            res.send(html);
                 
-                // Gerar QR Code como imagem
-                const qrCodeImage = await QRCode.toDataURL(qr);
-                
-                res.json({ 
-                    qrCode: qrCodeImage,
-                    message: 'Escaneie o QR Code com o WhatsApp' 
-                });
+                // res.json({ 
+                //     qrCode: qrCodeImage,
+                //     message: 'Escaneie o QR Code com o WhatsApp' 
+                // });
             } catch (error) {
                 res.status(500).json({ 
                     error: 'Erro ao gerar QR Code', 
@@ -135,6 +167,7 @@ class WhatsAppService {
     async sendMessage(number, message) {
         const chatId = `${number}@c.us`;
         await this.client.sendMessage(chatId, message);
+
     }
 
     initialize() {

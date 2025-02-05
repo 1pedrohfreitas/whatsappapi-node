@@ -3,5 +3,15 @@
 
  {
     "number" : "553194245892",
-    "message" : "teste"
+    "message" : "Parabéns\r\nDeu certo"
  }
+
+ 
+
+#  post https://whatsappapi-node.onrender.com/send
+#  Content-Type: application/json
+
+#  {
+#     "number" : "553194245892",
+#     "message" : "Parabéns\r\nDeu certo"
+#  }
