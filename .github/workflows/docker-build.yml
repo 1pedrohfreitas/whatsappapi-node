@@ -1,0 +1,76 @@
+name: Docker Build and Export
+
+on:
+  push:
+    branches: [ main ]  # Adjust branch name as needed
+  pull_request:
+    branches: [ main ]  # Adjust branch name as needed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        load: true
+        tags: node-chrome-app:latest
+        build-args: |
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+          PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+        file: |
+          FROM node:18-bullseye-slim
+
+          # Install GPG keys and dependencies
+          RUN apt-get update && apt-get install -y \
+              wget \
+              gnupg \
+              ca-certificates \
+              && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+              && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+              && apt-get update \
+              && apt-get install -y \
+              google-chrome-stable \
+              --no-install-recommends \
+              && rm -rf /var/lib/apt/lists/*
+
+          # Set Puppeteer variables
+          ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+          ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
+          # Set working directory
+          WORKDIR /app
+
+          # Copy package files and install dependencies
+          COPY package*.json ./
+          RUN npm install
+
+          # Copy application code
+          COPY . .
+
+          # Expose port
+          EXPOSE 3000
+
+          # Startup command
+          CMD ["node", "index.js"]
+
+    - name: Export Docker image
+      run: docker save node-chrome-app:latest > node-chrome-app.tar
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-image
+        path: node-chrome-app.tar
