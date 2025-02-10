@@ -1,69 +1,29 @@
-name: Docker Build and Export
+name: Build e Export Docker
 
 on:
   push:
-    branches: [ main ]  # Adjust branch name as needed
-  pull_request:
-    branches: [ main ]  # Adjust branch name as needed
+    branches:
+      - main  # Executa quando houver push na branch principal
+  workflow_dispatch:  # Permite execução manual
 
 jobs:
-  build:
+  build-and-export:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Build da imagem Docker
+        run: |
+          docker build -t whatsappapi-node:latest .
 
-    - name: Build Docker image
-      run: |
-        docker build -t node-chrome-app:latest - <<EOF
-        FROM node:18-bullseye-slim
+      - name: Exportar a imagem Docker como arquivo .tar
+        run: |
+          docker save -o whatsappapi-node.tar whatsappapi-node:latest
 
-        # Install dependencies
-        RUN apt-get update && apt-get install -y \
-            wget \
-            gnupg \
-            ca-certificates
-
-        # Add Chrome repository
-        RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-            echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
-
-        # Install Chrome
-        RUN apt-get update && \
-            apt-get install -y google-chrome-stable --no-install-recommends && \
-            rm -rf /var/lib/apt/lists/*
-
-        # Set Puppeteer variables
-        ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-        ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
-
-        # Set working directory
-        WORKDIR /app
-
-        # Copy application code
-        COPY . .
-
-        # Copy package files and install dependencies
-        #COPY package*.json ./
-        RUN npm install
-
-        
-
-        # Expose port
-        EXPOSE 3000
-
-        # Startup command
-        CMD ["node", "index.js"]
-        EOF
-
-    - name: Export Docker image
-      run: docker save node-chrome-app:latest > node-chrome-app.tar
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: docker-image
-        path: node-chrome-app.tar
+      - name: Fazer upload do arquivo .tar como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: whatsappapi-node-image
+          path: whatsappapi-node.tar
